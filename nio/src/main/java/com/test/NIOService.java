@@ -12,6 +12,10 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+
+/**
+ * NIO同步非阻塞模式【使用selector.select()实现阻塞】
+ */
 public class NIOService {
     ServerSocketChannel serverSocketChannel;
     Selector selector;
@@ -37,33 +41,47 @@ public class NIOService {
     }
 
     public void serverHandle() throws IOException {
-        int serverFlag = 0;
-        System.err.println("-----");
-        while ((serverFlag = selector.select()) > 0) {
-            System.err.println("------>" + serverFlag);
+        boolean serverFlag = true;
+        while (serverFlag) {
+            /*在没有客户端的链接时，实现阻塞，等待客户端连接】*/
+            int d = selector.select();
+
+            if (d == 0) continue;
+
+            /*循环迭代所有通道信息*/
             Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
             while (keys.hasNext()) {
                 SelectionKey k = keys.next();
+                /*通道的操作类型*/
                 if (k.isAcceptable()) {
+                    /*获取客户端信息*/
                     SocketChannel client = serverSocketChannel.accept();
-                    System.err.println("-------------" + client);
                     if (client != null) {
                         threadPoolExecutor.execute(() -> {
+                            /*设置缓冲区*/
                             ByteBuffer byteBuffer = ByteBuffer.allocate(50);
                             boolean flag = true;
+                            /*循环缓冲区的内容*/
                             while (flag) {
+                                /*清空缓冲区*/
                                 byteBuffer.clear();
                                 try {
+                                    /*从还缓冲区读取内容*/
                                     int t = client.read(byteBuffer);
                                     String s = new String(byteBuffer.array(), 0, t).trim();
                                     System.err.println("从客户端接收到的数据：" + s);
+                                    /*当遇到exit断开连接，client.close()*/
                                     if ("exit".equals(s)) {
                                         flag = false;
                                     }
+                                    /*再次清空缓冲区*/
                                     byteBuffer.clear();
+                                    /*向还缓冲区写入数据*/
                                     byteBuffer.put(s.getBytes());
+                                    /*重置位置*/
                                     byteBuffer.flip();
 
+                                    /*向客户端回应信息*/
                                     client.write(byteBuffer);
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -77,6 +95,7 @@ public class NIOService {
                         });
                     }
                 }
+                /*在处理完一个channel后，必须移除此通道，否则会使selector.select()进入死循环*/
                 keys.remove();
             }
 

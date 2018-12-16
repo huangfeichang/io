@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 /**
- * 【同步阻塞】
+ * 【同步阻塞】【使用serverSocket.accept()实现阻塞】
  * BIO服务端数据操作
  * 接收数据，并且处理数据
  * 返回数据不需要手动输入，返回需要的信息
@@ -33,7 +33,7 @@ public class BIOService {
         boolean acceptFlag = true;
         while (acceptFlag) {
             try {
-                /*等待客户端的链接，并返回一个链接对象*/
+                /*等待客户端的链接，并返回一个链接对象【实现阻塞，等待新的链接进来】*/
                 Socket client = serverSocket.accept();
 
                 /*一个任务启动一个线程【为了保证可以链接多个客户端】*/
