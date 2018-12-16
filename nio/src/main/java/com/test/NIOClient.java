@@ -6,15 +6,20 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
+/**
+ * NIO同步非阻塞模式【使用selector.select()实现阻塞】
+ * 数据的读与写主要操作缓冲区ByteBuffer【在操作读写前线clear(),特别当写的情况下需要flip()重置位置】
+ */
 public class NIOClient {
 
     SocketChannel socketChannel;
 
     {
         try {
+            /*链接一个nio服务*/
             socketChannel = SocketChannel.open();
             socketChannel.connect(new InetSocketAddress(StaticUtil.REGISTER_ADDRESS, StaticUtil.REGISTER_PORT));
-            System.err.println("向服务端链接成功，地址：" + StaticUtil.REGISTER_ADDRESS);
+            System.err.println("向服务端链接成功，地址：" + StaticUtil.REGISTER_ADDRESS + ",端口：" + StaticUtil.REGISTER_PORT);
         } catch (IOException e) {
             e.printStackTrace();
         }

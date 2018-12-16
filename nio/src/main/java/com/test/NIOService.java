@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * NIO同步非阻塞模式【使用selector.select()实现阻塞】
+ * 数据的读与写主要操作缓冲区ByteBuffer【在操作读写前线clear(),特别当写的情况下需要flip()重置位置】
  */
 public class NIOService {
     ServerSocketChannel serverSocketChannel;
