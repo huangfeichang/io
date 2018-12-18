@@ -27,7 +27,9 @@ public class WebSocketTest {
     private Session session;
 
     /**
-     * 连接建立成功调用的方法*/
+     *
+     * 连接建立成功调用的方法
+     */
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
@@ -35,7 +37,7 @@ public class WebSocketTest {
         addOnlineCount();           //在线数加1
         System.out.println("有新连接加入！当前在线人数为" + getOnlineCount());
         try {
-            sendMessage("有新连接加入！");
+            sendMessage("有新连接加入！" + session.getId());
         } catch (IOException e) {
             System.out.println("IO异常");
         }
