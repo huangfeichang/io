@@ -1,5 +1,5 @@
 [js连接服务端socket]
-var socket = new WebSocket("ws://127.0.0.1:5044/tte/socket");
+var socket = new WebSocket("ws://127.0.0.1:8080/web/socket");
 
 //打开事件
 socket.onopen = function() {

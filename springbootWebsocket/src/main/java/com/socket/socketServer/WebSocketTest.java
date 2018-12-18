@@ -56,7 +56,8 @@ public class WebSocketTest {
     /**
      * 收到客户端消息后调用的方法
      *
-     * @param message 客户端发送过来的消息*/
+     * @param message 客户端发送过来的消息
+     */
     @OnMessage
     public void onMessage(String message, Session session) {
         System.out.println("来自客户端的消息:" + message);
@@ -88,13 +89,28 @@ public class WebSocketTest {
      }
 
 
-     /**
-      * 群发自定义消息
-      * */
+    /**
+     * 群发自定义消息
+     **/
     public static void sendInfo(String message) throws IOException {
+        sendInfo(null, message);
+    }
+
+
+    /**
+     * 单个消息推送
+     **/
+    public static void sendInfo(String sessionId, String message) throws IOException {
         for (WebSocketTest item : webSocketSet) {
             try {
-                item.sendMessage(message);
+                if (sessionId == null) {
+                    item.sendMessage(message);
+                } else {
+                    if (sessionId.equals(item.session.getId())) {
+                        item.sendMessage(message);
+                    }
+                }
+
             } catch (IOException e) {
                 continue;
             }
