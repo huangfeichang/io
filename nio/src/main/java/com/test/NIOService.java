@@ -59,40 +59,7 @@ public class NIOService {
                     SocketChannel client = serverSocketChannel.accept();
                     if (client != null) {
                         threadPoolExecutor.execute(() -> {
-                            /*设置缓冲区*/
-                            ByteBuffer byteBuffer = ByteBuffer.allocate(50);
-                            boolean flag = true;
-                            /*循环缓冲区的内容*/
-                            while (flag) {
-                                /*清空缓冲区*/
-                                byteBuffer.clear();
-                                try {
-                                    /*从还缓冲区读取内容*/
-                                    int t = client.read(byteBuffer);
-                                    String s = new String(byteBuffer.array(), 0, t).trim();
-                                    System.err.println("从客户端接收到的数据：" + s);
-                                    /*当遇到exit断开连接，client.close()*/
-                                    if ("exit".equals(s)) {
-                                        flag = false;
-                                    }
-                                    /*再次清空缓冲区*/
-                                    byteBuffer.clear();
-                                    /*向还缓冲区写入数据*/
-                                    byteBuffer.put(s.getBytes());
-                                    /*重置位置*/
-                                    byteBuffer.flip();
-
-                                    /*向客户端回应信息*/
-                                    client.write(byteBuffer);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            try {
-                                client.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            accessData(client);
                         });
                     }
                 }
@@ -100,6 +67,43 @@ public class NIOService {
                 keys.remove();
             }
 
+        }
+    }
+
+    private void accessData(SocketChannel client) {
+        /*设置缓冲区*/
+        ByteBuffer byteBuffer = ByteBuffer.allocate(50);
+        boolean flag = true;
+        /*循环缓冲区的内容*/
+        while (flag) {
+            /*清空缓冲区*/
+            byteBuffer.clear();
+            try {
+                /*从还缓冲区读取内容*/
+                int t = client.read(byteBuffer);
+                String s = new String(byteBuffer.array(), 0, t).trim();
+                System.err.println("从客户端接收到的数据：" + s);
+                /*当遇到exit断开连接，client.close()*/
+                if ("exit".equals(s)) {
+                    flag = false;
+                }
+                /*再次清空缓冲区*/
+                byteBuffer.clear();
+                /*向还缓冲区写入数据*/
+                byteBuffer.put(s.getBytes());
+                /*重置位置*/
+                byteBuffer.flip();
+
+                /*向客户端回应信息*/
+                client.write(byteBuffer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            client.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
