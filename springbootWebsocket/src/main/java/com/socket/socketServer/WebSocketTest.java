@@ -8,6 +8,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -23,8 +24,12 @@ public class WebSocketTest {
     //concurrent包的线程安全Set，用来存放每个客户端对应的WebSocketTest对象。
     private static CopyOnWriteArraySet<WebSocketTest> webSocketSet = new CopyOnWriteArraySet<WebSocketTest>();
 
+    private static ConcurrentHashMap<String, WebSocketTest> concurrentHashMap = new ConcurrentHashMap(16);
+
     //与某个客户端的连接会话，需要通过它来给客户端发送数据
     private Session session;
+
+    private int a = 0;
 
     /**
      *
@@ -33,8 +38,10 @@ public class WebSocketTest {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
+        concurrentHashMap.putIfAbsent(session.getQueryString(), this);
         webSocketSet.add(this);     //加入set中
-        addOnlineCount();           //在线数加1
+        addOnlineCount();
+        //在线数加1
         System.out.println("有新连接加入！当前在线人数为" + getOnlineCount());
         try {
             sendMessage("有新连接加入！" + session.getId());
@@ -62,13 +69,10 @@ public class WebSocketTest {
     public void onMessage(String message, Session session) {
         System.out.println("来自客户端的消息:" + message);
 
-        //群发消息
-        for (WebSocketTest item : webSocketSet) {
-            try {
-                item.sendMessage(message);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            this.session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -84,6 +88,7 @@ public class WebSocketTest {
 
 
      public void sendMessage(String message) throws IOException {
+         System.out.println("来自客户端的消息123:" + message);
      this.session.getBasicRemote().sendText(message);
      //this.session.getAsyncRemote().sendText(message);
      }
@@ -93,7 +98,13 @@ public class WebSocketTest {
      * 群发自定义消息
      **/
     public static void sendInfo(String message) throws IOException {
-        sendInfo(null, message);
+        for (WebSocketTest item : webSocketSet) {
+            try {
+                item.sendMessage(message);
+            } catch (IOException e) {
+                continue;
+            }
+        }
     }
 
 
@@ -101,20 +112,8 @@ public class WebSocketTest {
      * 单个消息推送
      **/
     public static void sendInfo(String sessionId, String message) throws IOException {
-        for (WebSocketTest item : webSocketSet) {
-            try {
-                if (sessionId == null) {
-                    item.sendMessage(message);
-                } else {
-                    if (sessionId.equals(item.session.getId())) {
-                        item.sendMessage(message);
-                    }
-                }
-
-            } catch (IOException e) {
-                continue;
-            }
-        }
+        WebSocketTest callinSocket = concurrentHashMap.get("zuoxiehao");
+        callinSocket.sendMessage(message);
     }
 
     public static synchronized int getOnlineCount() {
