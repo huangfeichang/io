@@ -47,8 +47,8 @@ public class NIOService {
     public void serverHandle() throws IOException {
         boolean serverFlag = true;
         while (serverFlag) {
-            /*在没有客户端的链接时，实现阻塞，等待客户端连接】*/
-            int d = selector.select();
+            /*在没有客户端的链接时，实现阻塞，等待客户端连接设置3s一次如果不设置一直阻塞*/
+            int d = selector.select(3000);
 
             if (d == 0) {
                 /*在等待新的通道进来之前 可以异步执行其他任务【非阻塞在此实现】*/
