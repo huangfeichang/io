@@ -47,7 +47,10 @@ public class NIOService {
             /*在没有客户端的链接时，实现阻塞，等待客户端连接】*/
             int d = selector.select();
 
-            if (d == 0) continue;
+            if (d == 0) {
+                /*在等待新的通道进来之前 可以异步执行其他任务*/
+                continue;
+            }
 
             /*循环迭代所有通道信息*/
             Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
