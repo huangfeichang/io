@@ -16,6 +16,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * NIO同步非阻塞模式【使用selector.select()实现阻塞】
  * 数据的读与写主要操作缓冲区ByteBuffer【在操作读写前线clear(),特别当写的情况下需要flip()重置位置】
+ * 【小故事】：
+ * 打电话给饭店,我要吃排骨。服务员说:好的,然后我去干其他事了,过了半个小时,我又打电话问,好了吗。
+ * 又回答:还在做。不必等着 ,可以做其他事,有问必答
  */
 public class NIOService {
     ServerSocketChannel serverSocketChannel;
@@ -48,7 +51,7 @@ public class NIOService {
             int d = selector.select();
 
             if (d == 0) {
-                /*在等待新的通道进来之前 可以异步执行其他任务*/
+                /*在等待新的通道进来之前 可以异步执行其他任务【非阻塞在此实现】*/
                 continue;
             }
 

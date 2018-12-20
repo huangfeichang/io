@@ -14,6 +14,8 @@ import java.util.Scanner;
  * 返回数据不需要手动输入，返回需要的信息
  * 注：发送内容必须带有换行符
  * 可以使用telnet localhost 8044测试
+ * 【小故事】：
+ * 人去饭店吃饭,一直等着,啥也干不了
  */
 public class BIOService {
     ServerSocket serverSocket;
