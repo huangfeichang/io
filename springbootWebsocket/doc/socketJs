@@ -1,5 +1,5 @@
 [js连接服务端socket]
-var socket = new WebSocket("ws://127.0.0.1:8080/web/socket?asasx");
+var socket = new WebSocket("ws://127.0.0.1:5044/tte/socket?asasx");
 
 //打开事件
 socket.onopen = function() {
@@ -20,3 +20,6 @@ socket.onclose = function() {
 socket.onerror = function() {
     alert("Socket发生了错误");
 }
+
+[socket调试地址]
+http://coolaf.com/tool/chattest

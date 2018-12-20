@@ -1,15 +1,15 @@
 package com.socket.socketServer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.OnClose;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author huangfeichang.
@@ -18,35 +18,35 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @ServerEndpoint("/socket")
 @Component
 public class WebSocketTest {
-    //静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。
-    private static int onlineCount = 0;
+    private static Logger logger = LoggerFactory.getLogger(WebSocketTest.class);
 
-    //concurrent包的线程安全Set，用来存放每个客户端对应的WebSocketTest对象。
+    /**静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。*/
+    private static AtomicInteger onlineCount = new AtomicInteger(0);
+
+    /**concurrent包的线程安全Set，用来存放每个客户端对应的WebSocketTest对象。*/
     private static CopyOnWriteArraySet<WebSocketTest> webSocketSet = new CopyOnWriteArraySet<WebSocketTest>();
 
+    /**ConcurrentHashMap是线程安全k-v组合集合*/
     private static ConcurrentHashMap<String, WebSocketTest> concurrentHashMap = new ConcurrentHashMap(16);
 
-    //与某个客户端的连接会话，需要通过它来给客户端发送数据
+    /**与某个客户端的连接会话，需要通过它来给客户端发送数据*/
     private Session session;
 
-    private int a = 0;
-
     /**
-     *
      * 连接建立成功调用的方法
      */
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
+        //利用坐席号绑定唯一对应通道
         concurrentHashMap.putIfAbsent(session.getQueryString(), this);
-        webSocketSet.add(this);     //加入set中
-        addOnlineCount();
         //在线数加1
-        System.out.println("有新连接加入！当前在线人数为" + getOnlineCount());
+        addOnlineCount();
+        logger.info("有新连接加入！当前在线人数为" + getOnlineCount());
         try {
             sendMessage("有新连接加入！" + session.getId());
         } catch (IOException e) {
-            System.out.println("IO异常");
+            logger.error("IO异常", e);
         }
     }
 
@@ -55,9 +55,12 @@ public class WebSocketTest {
      */
     @OnClose
     public void onClose() {
-        webSocketSet.remove(this);  //从set中删除
-        subOnlineCount();           //在线数减1
-        System.out.println("有一连接关闭！当前在线人数为" + getOnlineCount());
+        /*移除此通道*/
+        /*webSocketSet.remove(this);*/
+        concurrentHashMap.remove(this.session.getQueryString());
+        /*在线数减1*/
+        subOnlineCount();
+        logger.info("有一连接关闭！当前在线人数为" + getOnlineCount() + ",通道为：" + this.session.getQueryString());
     }
 
     /**
@@ -66,65 +69,53 @@ public class WebSocketTest {
      * @param message 客户端发送过来的消息
      */
     @OnMessage
-    public void onMessage(String message, Session session) {
-        System.out.println("来自客户端的消息:" + message);
-
-        try {
-            this.session.getBasicRemote().sendText(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void onMessage(String message) throws IOException {
+        logger.info("来自客户端的消息:" + message);
+        this.session.getBasicRemote().sendText(message);
     }
 
     /**
      * 发生错误时调用
-     * @param session
+     *
      * @param error
      */
-     public void onError(Session session, Throwable error) {
-     System.out.println("发生错误");
-     error.printStackTrace();
-     }
-
-
-     public void sendMessage(String message) throws IOException {
-         System.out.println("来自客户端的消息123:" + message);
-     this.session.getBasicRemote().sendText(message);
-     //this.session.getAsyncRemote().sendText(message);
-     }
-
+    @OnError
+    public void onError(Throwable error) {
+        logger.info("发生错误");
+        error.printStackTrace();
+    }
 
     /**
-     * 群发自定义消息
-     **/
-    public static void sendInfo(String message) throws IOException {
-        for (WebSocketTest item : webSocketSet) {
-            try {
-                item.sendMessage(message);
-            } catch (IOException e) {
-                continue;
-            }
-        }
+     * 发送消息
+     *
+     * @param message
+     * @throws IOException
+     */
+    public void sendMessage(String message) throws IOException {
+        this.session.getBasicRemote().sendText(message);
     }
 
 
     /**
-     * 单个消息推送
-     **/
-    public static void sendInfo(String sessionId, String message) throws IOException {
-        WebSocketTest callinSocket = concurrentHashMap.get("zuoxiehao");
+     * @param message
+     * @throws IOException
+     */
+    public static void sendInfo(String message) throws IOException {
+        //获取唯一通道
+        WebSocketTest callinSocket = concurrentHashMap.get("aa");
+        //推送消息
         callinSocket.sendMessage(message);
     }
 
     public static synchronized int getOnlineCount() {
-        return onlineCount;
+        return onlineCount.get();
     }
 
     public static synchronized void addOnlineCount() {
-        WebSocketTest.onlineCount++;
+        WebSocketTest.onlineCount.incrementAndGet();
     }
 
     public static synchronized void subOnlineCount() {
-        WebSocketTest.onlineCount--;
+        WebSocketTest.onlineCount.decrementAndGet();
     }
 }
