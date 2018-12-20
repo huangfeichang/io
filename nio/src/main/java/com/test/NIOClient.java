@@ -26,6 +26,9 @@ public class NIOClient {
     }
 
     public void sendMsgToServerHandle() {
+        /**
+         * 读数据需要使用while(true)来监听缓冲区中的数据不断的输出
+         */
         ByteBuffer byteBuffer = ByteBuffer.allocate(50);
         boolean flag = true;
         while (flag) {

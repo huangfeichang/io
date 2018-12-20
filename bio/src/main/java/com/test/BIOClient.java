@@ -29,7 +29,10 @@ public class BIOClient {
 
     public void serviceService() {
         try {
-            /*接收服务端返回的数据*/
+            /*接收服务端返回的数据
+            * 【相当于缓冲区，有数据会自动获取】
+            * 读数据需要使用while(true)来监听缓冲区中的数据不断的输出
+            * */
             Scanner scanner = new Scanner(socket.getInputStream());
 //            scanner.useDelimiter("\n"); //可要可不要
             /*向服务端写数据*/

@@ -42,7 +42,9 @@ public class BIOService {
                 完成【关闭通道】。*/
                 new Thread(() -> {
                     try {
-                        /*使用Scanner获取客户端发送过来的数据*/
+                        /*使用Scanner获取客户端发送过来的数据【相当于缓冲区，有数据会自动获取】
+                        * 读数据需要使用while(true)来监听缓冲区中的数据不断的输出
+                        * */
                         Scanner scanner = new Scanner(client.getInputStream());
                         //            scanner.useDelimiter("\n"); //可要可不要
                         /*设置向指定客户端返回信息*/

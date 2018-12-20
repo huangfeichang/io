@@ -71,7 +71,9 @@ public class NIOService {
     }
 
     private void accessData(SocketChannel client) {
-        /*设置缓冲区*/
+        /*设置缓冲区
+        * 读数据需要使用while(true)来监听缓冲区中的数据不断的输出
+        * */
         ByteBuffer byteBuffer = ByteBuffer.allocate(50);
         boolean flag = true;
         /*循环缓冲区的内容*/
